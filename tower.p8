@@ -12,9 +12,9 @@ game_cursor = {
 
 game_menu_unit = {
 	clicked = 0,
-	btn_upgrade = {56, 0, 0},
-	btn_delete = {64, 0, 0},
-	btn_back = {72, 0, 0},
+	btn_upgrade = {96, 0, 0},
+	btn_delete = {104, 0, 0},
+	btn_back = {112, 0, 0},
 	btn_tm = 8,
 	btn_tmr = 0
 }
@@ -605,13 +605,13 @@ function sys_get_input()
 		if game_unit_selected != 0 then
 			local gm = game_menu_unit
 			if stat(34) == 1 and gm.btn_tmr == 0 then
-				if cursor_is_hovering(gm.btn_upgrade, 8, 8) then
+				if cursor_is_hovering(gm.btn_upgrade, 8, 8) and gm.btn_upgrade[3] == 0 then
 					gm.btn_upgrade[3] = 1
 					gm.btn_tmr = gm.btn_tm
-				elseif cursor_is_hovering(gm.btn_delete, 8, 8) then
+				elseif cursor_is_hovering(gm.btn_delete, 8, 8) and gm.btn_delete[3] == 0 then
 					gm.btn_delete[3] = 1
 					gm.btn_tmr = gm.btn_tm
-				elseif cursor_is_hovering(gm.btn_back, 8, 8) then
+				elseif cursor_is_hovering(gm.btn_back, 8, 8) and gm.btn_back[3] == 0 then
 					gm.btn_back[3] = 1
 					gm.btn_tmr = gm.btn_tm
 				elseif closest_unit == 0 then
