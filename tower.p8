@@ -12,19 +12,21 @@ game_cursor = {
 
 game_menu_unit = {
 	clicked = 0,
-	options_exit = 0,
-	upgrade_delete = 0,
-	upgrade_yes_no = 0,
-	delete_yes_no = 0
+	btn_upgrade = {56, 0, 0},
+	btn_delete = {64, 0, 0},
+	btn_back = {72, 0, 0},
+	btn_tm = 8,
+	btn_tmr = 0
 }
 
 game_unit_selected = 0
 
 function game_menu_unit_reset()
-	game_menu_unit.clicked = 0
-	game_menu_unit.options_exit = 0
-	game_menu_unit.upgrade_delete  = 0
-	game_menu_unit.delete_yes_no = 0
+	local gm = game_menu_unit
+	gm.clicked = 0
+	gm.btn_upgrade[3] = 0
+	gm.btn_delete[3] = 0
+	gm.btn_back[3] = 0
 end
 -->8
 --entities
@@ -347,6 +349,38 @@ function sys_animate_enemies()
 	end
 end
 
+function sys_animate_hud()
+	local gm = game_menu_unit
+	if gm.btn_upgrade[3] == 1 then
+		if gm.btn_tmr == gm.btn_tm then
+			gm.btn_upgrade[2] += 1
+		elseif gm.btn_tmr == 0 then
+			gm.btn_upgrade[2] -= 1
+			gm.btn_upgrade[3] = 0
+		end
+	end
+	if gm.btn_delete[3] == 1 then
+		if gm.btn_tmr == gm.btn_tm then
+			gm.btn_delete[2] += 1
+		elseif gm.btn_tmr == 0 then
+			gm.btn_delete[2] -= 1
+			gm.btn_delete[3] = 0
+		end
+	end
+	if gm.btn_back[3] == 1 then
+		if gm.btn_tmr == gm.btn_tm then
+			gm.btn_back[2] += 1
+		elseif gm.btn_tmr == 0 then
+			gm.btn_back[2] -= 1
+			gm.btn_back[3] = 0
+		end
+	end
+	if gm.btn_tmr > 0 then
+		gm.btn_tmr -= 1
+	end
+end
+
+
 function sys_animate_towers()
 	local ang = 8
 	for i = 1, #ent_tower do
@@ -480,42 +514,15 @@ end
 function sys_draw_hud()
 	--unit select menu options
 	local gm = game_menu_unit
-	if game_unit_selected != 0 then
+	if gm.clicked == 1 then
 		rectfill(0, 0, 128, 7, 0)
 		print(ent_tower[game_unit_selected].name, 0, 1, 7)
 		print(ent_tower[game_unit_selected].lvl, 40, 1, 7)
-		--spr(38, 64, 0)
-		--spr(37, 80, 0)
+		--	print("🅾️options ❎exit", 56, 0, 7)
+		spr(37, gm.btn_upgrade[1], gm.btn_upgrade[2])
+		spr(38, gm.btn_delete[1], gm.btn_delete[2])
+		spr(39, gm.btn_back[1], gm.btn_back[2])
 	end
-
-	if gm.clicked == 1 then
-		if gm.options_exit == 0 then
-			print("🅾️options ❎exit", 56, 0, 7)
-		elseif gm.upgrade_delete == 0 then
-			print("🅾️upgrade ❎delete", 56, 0, 7)
-		elseif gm.upgrade_delete == 1 then
-			print("upgrade!", 64, 0, 7)
-		elseif gm.upgrade_delete == 2 then
-			if gm.delete_yes_no == 0 then
-				print("delete?", 64, 0, 7)
-			end
-			if gm.delete_yes_no == 1 then
-			elseif gm.delete_yes_no == 2 then
-			end
-		end
-	end
-
-	--options_exit = 0,
-	--upgrade_delete = 0,
-	--upgrade_yes_no = 0,
-	--delete_yes_no = 0
-
-	-- HOVER OVER UNIT
-		-->> UNIT_NAME, UNIT_LEVEL
-			-->> upgrade PRICE
-			-->> sell PRICE
-	--rectfill(0, 0, 128, 8, 0)
-	--print("build: x", 0, 0, 7)
 end
 
 function sys_draw_road()
@@ -591,48 +598,27 @@ function sys_get_input()
 					game_menu_unit_reset()
 				end
 				game_menu_unit.clicked = 1
-			end
 		elseif closest_unit == 0 then
-			--clicking outside of the selected unit deselects it
-			if stat(34) == 1 and game_unit_selected != 0 then
-				ent_tower[game_unit_selected].selected = false
-				game_unit_selected = 0
-				game_menu_unit_reset()
 			end
 			game_cursor.mode = 0
 		end
 		if game_unit_selected != 0 then
-			-- pressing the x key deselects the unit
 			local gm = game_menu_unit
-			if gm.options_exit == 0 then
-				if btnp(4) then
-					gm.options_exit = 1
-				elseif btnp(5) then
-					gm.options_exit = 2
-					game_menu_unit_reset()
-					ent_tower[game_unit_selected].selected = false
-					game_unit_selected = 0
-				end
-			elseif gm.options_exit == 1 and gm.upgrade_delete == 0 then
-				if btnp(4) then
-					gm.upgrade_delete = 1
-				elseif btnp(5) then
-					gm.upgrade_delete = 2
-				end
-			elseif gm.upgrade_delete == 1 then
-				if btnp(4) then
-					--upgrade the unit, then reset upgrade_yes_no
-				elseif btnp(5) then
-					gm.upgrade_yes_no = 2
-					game_menu_unit_reset()
-					gm.clicked = 1
-				end
-			elseif gm.upgrade_delete == 2 and gm.delete_yes_no == 0 then
-				if btnp(4) then
-					--delete the unit, sell, etc,.
-				elseif btnp(5) then
-					game_menu_unit_reset()
-					gm.clicked = 1
+			if stat(34) == 1 and gm.btn_tmr == 0 then
+				if cursor_is_hovering(gm.btn_upgrade, 8, 8) then
+					gm.btn_upgrade[3] = 1
+					gm.btn_tmr = gm.btn_tm
+				elseif cursor_is_hovering(gm.btn_delete, 8, 8) then
+					gm.btn_delete[3] = 1
+					gm.btn_tmr = gm.btn_tm
+				elseif cursor_is_hovering(gm.btn_back, 8, 8) then
+					gm.btn_back[3] = 1
+					gm.btn_tmr = gm.btn_tm
+				elseif closest_unit == 0 then
+					--clicking outside of the selected unit deselects it
+			--		ent_tower[game_unit_selected].selected = false
+			--		game_unit_selected = 0
+			--		game_menu_unit_reset()
 				end
 			end
 		end
@@ -641,6 +627,14 @@ end
 
 -->8
 --helper functions
+function cursor_is_hovering(button, bw, bh)
+	if (game_cursor.x + 4) > button[1] and (game_cursor.x + 4) < button[1] + bw
+		and (game_cursor.y + 4) > button[2] and (game_cursor.y + 4) < button[2] + bh then
+		return true
+	else
+		return false
+	end
+end
 function distance_get(x1, y1, x2, y2)
 	return sqrt((abs(x1 - x2) * 2) + (abs(y1 - y2)) * 2)
 end
@@ -671,6 +665,7 @@ function _update()
 	sys_ai_explosions()
 	sys_animate_towers()
 	sys_animate_enemies()
+	sys_animate_hud()
 	sys_delete_enemies()
 	sys_delete_explosions()
 	sys_delete_towers()
@@ -686,8 +681,9 @@ function _draw()
 	sys_draw_enemies()
 	sys_draw_towers()
 	sys_draw_explosions()
-	sys_draw_cursor()
 	sys_draw_hud()
+	sys_draw_cursor()
+	print(game_menu_unit.btn_tmr, 0, 120, 7)
 end
 __gfx__
 00000000fffffffffffffffffffffffffffff00ffff00fffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000
@@ -706,14 +702,14 @@ f0eeee0f0000000ffff0000fff0000ffff000d50ff0dd0ff00000000000000000000000000000000
 f002200ffff00ffff0550fffff0dd0ffff000fffff0000ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
 f020020fff0990ffff0990ffff0550ffff0990ffff0990ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
 ff0ff0fff090090ff090090ff090090ff090090ff090090f00000000000000000000000000000000000000000000000000000000000000000000000000000000
-fff0ffffff000ffffffff0fffff77fff77ffff77fefffefffff3bfff007777000000000000000000000000000000000000000000000000000000000000000000
-ff0d0fffff04000ff0fff0ffffffffff7ffffff7ffef88ffff333bff000000000000000000000000000000000000000000000000000000000000000000000000
-ff0d50ffff04040ff0fff0fffff77ffffffffffffff8effff33ff3bf077777700000000000000000000000000000000000000000000000000000000000000000
-f0dd50ffff04040ff0fff0ff7f7ff7f7ffffffffffff8efff3f3bf3f000000000000000000000000000000000000000000000000000000000000000000000000
-f0d5550fff022220f0fff0ff7f7ff7f7ffffffffff8ff8efff3ffbff007777000000000000000000000000000000000000000000000000000000000000000000
-0dd5d50ff0244440f0f000fffff77ffffffffffff8ffff8ff3ffffbf000000000000000000000000000000000000000000000000000000000000000000000000
-0d5dd5500240404002002200ffffffff7ffffff7ffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000
-dddddd550444444004444440fff77fff77ffff77ffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000
+fff0ffffff000ffffffff0fffff77fff77ffff77fff3bffffefffefffff7ffff0000000000000000000000000000000000000000000000000000000000000000
+ff0d0fffff04000ff0fff0ffffffffff7ffffff7ff333bffffef88ffff77ffff0000000000000000000000000000000000000000000000000000000000000000
+ff0d50ffff04040ff0fff0fffff77ffffffffffff33ff3bffff8effff67766ff0000000000000000000000000000000000000000000000000000000000000000
+f0dd50ffff04040ff0fff0ff7f7ff7f7fffffffff3f3bf3fffff8effff67ff6f0000000000000000000000000000000000000000000000000000000000000000
+f0d5550fff022220f0fff0ff7f7ff7f7ffffffffff3ffbffff8ff8effff6ff7f0000000000000000000000000000000000000000000000000000000000000000
+0dd5d50ff0244440f0f000fffff77ffffffffffff3ffffbff8ffff8ffffff7ff0000000000000000000000000000000000000000000000000000000000000000
+0d5dd5500240404002002200ffffffff7ffffff7ffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000
+dddddd550444444004444440fff77fff77ffff77ffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000
 ffffffff11111111ffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000
 ff0000ff11111111ff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ff00000000000000000000000000000000000000000000000000000000
 f011110f11111111f0eeee0ff0eeee0ff0eeee0ff0eeee0ff0eeee0ff0eeee0ff0eeee0f00000000000000000000000000000000000000000000000000000000
