@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 33
+version 42
 __lua__
 --game variables
 game_level = 1
@@ -488,9 +488,11 @@ function sys_draw_hud()
 		--spr(37, 80, 0)
 	end
 
-	if gm.clicked == 1 and gm.options_exit == 1 then
-		if gm.upgrade_delete == 0 then
-			print("upgrade or delete", 64, 0, 7)
+	if gm.clicked == 1 then
+		if gm.options_exit == 0 then
+			print("🅾️options ❎exit", 56, 0, 7)
+		elseif gm.upgrade_delete == 0 then
+			print("🅾️upgrade ❎delete", 56, 0, 7)
 		elseif gm.upgrade_delete == 1 then
 			print("upgrade!", 64, 0, 7)
 		elseif gm.upgrade_delete == 2 then
