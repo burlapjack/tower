@@ -28,7 +28,6 @@ function game_menu_unit_reset()
 end
 -->8
 --entities
-ent_bullet = {}
 ent_enemy = {}
 ent_explosion = {}
 ent_tower = {}
@@ -38,39 +37,6 @@ ent_path = {
 	{{16, 0}, {16, 104}, {56, 104}, {56, 16}, {96, 16},{96, 120}},
 	{{0, 64}, {64, 64}, {64, 24}, {32, 24}, {32, 0}, {96, 0}, {96, 104}, {64, 104}}
 }
-
-function ent_bullet_create(x, y, dest_x, dest_y, rng, bullet_id)
-	local e = {
-		x = x,
-		y = y,
-		hp = 1,
-		start_x = x,
-		start_y = y,
-		spd = 1,
-		ang = 0,
-		dmg = 1,
-		rng = rng,
-		bullet_id = bullet_id,
-		tm = 5,
-		tmr = 0,
-		behavior = 0,
-		sprites_move = {},
-		sprite_current = 0,
-		frame = 1
-	}
-	--initialize direction data
-	e.ang = atan2((dest_x - e.x), (dest_y - e.y))
-
-	--initializing code based on bullet_id
-	if e.bullet_id == 1 then
-	--	e.sprites_move = {32}
-		e.spd = 4
-	elseif e.bullet_id == 3 then
-		e.spd = 4	
-	end
-
-	add(ent_bullet, e)
-end
 
 function ent_enemy_create(x, y, enemy_id)
 	local e = {
@@ -189,30 +155,9 @@ end
 
 -->8
 --systems
-function sys_ai_bullets()
-	for i = 1, #ent_bullet do
-		local b = ent_bullet[i]
-
-		b.x += cos(b.ang) * b.spd
-		b.y += sin(b.ang) * b.spd
-
-		--shooting an enemy
-		for j = 1, #ent_enemy do
-			local e = ent_enemy[j]
-			if distance_get(b.x, b.y, e.x + 4, e.y + 4) <= 3 then
-				e.hp -= b.dmg
-				b.hp = 0
-			end
-		end
-		--range reached
-		if distance_get(b.start_x, b.start_y, b.x, b.y) + 0.5 >= b.rng then
-			b.hp = 0	
-		end
-	end
-end
 
 function sys_ai_explosions()
-	local ex, en 
+	local ex, en
 	for i = 1, #ent_explosion do
 		ex = ent_explosion[i]
 		for j = 1, #ent_enemy do
@@ -243,12 +188,12 @@ function sys_ai_enemies()
 		if e.x > px then
 			e.x -= min(distx, spd)
 			e.dir = 0 --left
-		elseif e.x < px then 
+		elseif e.x < px then
 			e.x += min(distx, spd)
 			e.dir = 1 --right
 		end
-		if e.y > py then 
-			e.y -= min(disty, spd) 
+		if e.y > py then
+			e.y -= min(disty, spd)
 			e.dir = 2 -- up
 		elseif e.y < py then
 			e.y += min(disty, spd)
@@ -286,7 +231,7 @@ function sys_ai_towers()
 				if current_dist < target_dist then
 					if current_dist <= t.rng then
 						target = j
-						target_dist = current_dist 
+						target_dist = current_dist
 					end
 				end
 			end
@@ -297,7 +242,7 @@ function sys_ai_towers()
 				current_dist = distance_get(t.x, t.y, e.x, e.y)
 				if current_dist <= t.rng then
 					if t.tower_id == 2 then
-						e.spd_modifier = t.dmg	
+						e.spd_modifier = t.dmg
 					end
 				end
 			end
@@ -333,7 +278,7 @@ function sys_ai_towers()
 						by = 3
 					elseif t.sprite_current == t.sprites[4] then
 						by = -3
-						if t.sprite_flip == false then	
+						if t.sprite_flip == false then
 							bx = 3
 						else
 							bx = -2
@@ -352,18 +297,6 @@ function sys_ai_towers()
 	end
 end
 
-function sys_animate_bullets()
-	for i = 1, #ent_bullet do
-		local b = ent_bullet[i]
-		if b.tmr > 0 then
-			b.tmr -= 1
-		elseif b.tmr == 0 then
-			b.frame += 1
-			b.tmr = b.tm
-		end
-	end
-end
-
 function sys_animate_enemies()
 	for i = 1, #ent_enemy do
 		local e = ent_enemy[i]
@@ -375,7 +308,7 @@ function sys_animate_enemies()
 			e.frame += 1
 			if e.behavior == 0 then
 				if e.dir == 0 then -- left
-					e.sprite_flip = true		
+					e.sprite_flip = true
 					if e.frame > #e.sprites_left then
 						e.frame = 1
 					end
@@ -393,7 +326,7 @@ function sys_animate_enemies()
 					else
 						e.sprite_flip = false
 					end
-				elseif e.dir == 3 then -- down 
+				elseif e.dir == 3 then -- down
 					if e.frame > #e.sprites_down then
 						e.frame = 1
 					end
@@ -473,16 +406,6 @@ function sys_animate_towers()
 	end
 end
 
-function sys_delete_bullets()
-	if #ent_bullet > 0 then
-		for i = #ent_bullet, 1, -1 do
-			if ent_bullet[i].hp == 0 then
-				deli(ent_bullet, i)
-			end
-		end
-	end
-end
-
 function sys_delete_enemies()
 	if #ent_enemy > 0 then
 		for i = #ent_enemy, 1, -1 do
@@ -511,14 +434,6 @@ function sys_delete_towers()
 				deli(ent_tower, i)
 			end
 		end
-	end
-end
-
-function sys_draw_bullets()
-	local b
-	for i = 1, #ent_bullet do
-		b = ent_bullet[i]
---		pset(b.x, b.y, 12)
 	end
 end
 
@@ -597,29 +512,8 @@ function sys_draw_hud()
 		-->> UNIT_NAME, UNIT_LEVEL
 			-->> upgrade PRICE
 			-->> sell PRICE
-	--rectfill(0, 0, 128, 8, 0)	
+	--rectfill(0, 0, 128, 8, 0)
 	--print("build: x", 0, 0, 7)
-end
-
-function sys_draw_path()
-	local x1,x2,y1,y2
-	local path_color = 1
-	local p = ent_path[game_level]
-	for i = 1, #p - 1 do
-		x1 = p[i][1]
-		y1 = p[i][2]
-		x2 = p[i + 1][1]
-		y2 = p[i + 1][2]
-		if x1 < x2 then
-			rectfill(x1, y1, x2 + 7, y2 + 7, path_color)
-		elseif x1 > x2 then
-			rectfill(x1, y1, x2, y2 + 7, path_color)
-		elseif y1 < y2 then
-			rectfill(x1, y1, x2 + 7, y2 + 7, path_color)
-		elseif y1 > y2 then
-			rectfill(x1, y1, x2 + 7, y2, path_color)
-		end
-	end
 end
 
 function sys_draw_road()
@@ -644,9 +538,9 @@ function sys_initialize_road()
 	local px1, py1, py1, py2
 	for i = 1, #ent_path[game_level] - 1 do
 		px1 = ent_path[game_level][i][1]
-		py1 = ent_path[game_level][i][2]	
+		py1 = ent_path[game_level][i][2]
 		px2 = ent_path[game_level][i + 1][1]
-		py2 = ent_path[game_level][i + 1][2]	
+		py2 = ent_path[game_level][i + 1][2]
 		if px1 != px2 then
 			for j = min(px1, px2), max(px1, px2), 8 do
 				ent_road_create(j, py1, 1)
@@ -676,7 +570,7 @@ function sys_get_input()
 			t = ent_tower[i]
 			--selecting nearby units
 			if abs(t.x - cx < 4) and abs(t.y - cy < 4) then
-				this_dist = distance_get(t.x, t.y, cx, cy)	
+				this_dist = distance_get(t.x, t.y, cx, cy)
 				if this_dist < closest_dist then
 					closest_dist = this_dist
 					closest_unit = i
@@ -711,8 +605,8 @@ function sys_get_input()
 			if gm.options_exit == 0 then
 				if btnp(4) then
 					gm.options_exit = 1
-				elseif btnp(5) then 
-					gm.options_exit = 2 
+				elseif btnp(5) then
+					gm.options_exit = 2
 					game_menu_unit_reset()
 					ent_tower[game_unit_selected].selected = false
 					game_unit_selected = 0
@@ -786,11 +680,9 @@ function _draw()
 	spr(32, 24, 24)
 	spr(32, 40, 32)
 	spr(32, 32, 40)
-	--sys_draw_path()
 	sys_draw_road()
 	sys_draw_enemies()
 	sys_draw_towers()
-	sys_draw_bullets()
 	sys_draw_explosions()
 	sys_draw_cursor()
 	sys_draw_hud()
