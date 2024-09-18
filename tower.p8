@@ -166,7 +166,11 @@ function sys_ai_explosions()
 			en = ent_enemy[j]
 			if distance_get(ex.x, ex.y, en.x, en.y) <= ex.rad + 1 then
 				en.hp -= ex.dmg
-				sfx(0)
+				if ex.explosion_id == 1 then
+					sfx(0)
+				elseif ex.explosion_id == 3 then
+					sfx(1)
+				end
 			end
 		end
 		ex.dmg = 0
@@ -289,7 +293,7 @@ function sys_ai_towers()
 						by = -3
 					end
 					--ent_bullet_create(t.x + 4, t.y + 4, t.target_x, t.target_y, t.rng, t.tower_id)
-					ent_explosion_create(t.target_x + 4, t.target_y + 4, t.dmg, 1)
+					ent_explosion_create(t.target_x + 4, t.target_y + 4, t.dmg, t.tower_id)
 					ent_explosion_create(t.x + 4 + bx, t.y + 4 + by, 0, 0)
 				end
 			else
@@ -357,6 +361,7 @@ function sys_animate_hud()
 		elseif gm.btn_tmr == 0 then
 			gm.btn_upgrade[2] -= 1
 			gm.btn_upgrade[3] = 0
+			sfx(2)
 		end
 	end
 	if gm.btn_delete[3] == 1 then
@@ -365,6 +370,7 @@ function sys_animate_hud()
 		elseif gm.btn_tmr == 0 then
 			gm.btn_delete[2] -= 1
 			gm.btn_delete[3] = 0
+			sfx(3)
 		end
 	end
 	if gm.btn_back[3] == 1 then
@@ -373,6 +379,7 @@ function sys_animate_hud()
 		elseif gm.btn_tmr == 0 then
 			gm.btn_back[2] -= 1
 			gm.btn_back[3] = 0
+			sfx(2)
 		end
 	end
 	if gm.btn_tmr > 0 then
@@ -720,3 +727,6 @@ ff0000ff11111111f020080ff020020fff0800ffff8200ffff0200fff022220ff022220f00000000
 ffffffff11111111fffff8fffffffffffff8ffffff8ffffffffff8ffff0fffffffffffff00000000000000000000000000000000000000000000000000000000
 __sfx__
 00010000154501b450134400e430084200341000410002000140009450144500b4500545000450004000240001400004000050000000000000100001000030000400003000000000100001000010000100003000
+000100002b450244501c450184501345011450104500e4500b4500a450084500645004450014500045000450004000140001400014000142001450054500445002400044000c4000340001400004000040000400
+000600001b03027030237001d1001f000250001900017000150001400012000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000600002703022030250000f000020000f0000f00017000150001400012000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
