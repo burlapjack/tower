@@ -103,13 +103,14 @@ function ent_tower_create(x, y, tower_id)
 	local e = {
 		x = x,
 		y = y,
+		tower_id = tower_id,
 		name = "",
 		lvl = 1,
 		lvl_max = 5,
 		hp = 1,
-		dmg = 1,
+		dmg = {},
 		rng = 8,
-		tower_id = tower_id,
+		cost = {},
 		tm = 20,
 		tmr = 0,
 		target_x = -1,
@@ -127,21 +128,22 @@ function ent_tower_create(x, y, tower_id)
 	if tower_id == 1 then
 		e.name = "sentrygun"
 		e.sprites = {1, 2, 3, 4, 5}
-		e.dmg = 20
+		e.dmg = {1, 2}
+
 	--magnet tower
 	elseif tower_id == 2 then
 		e.name = "magnetron"
 		e.sprites = {6, 7, 8, 9, 8, 7}
-		e.tm = 2
-		e.dmg = -0.25
 		e.frame = e.sprites[1]
+		e.tm = 2
+		e.dmg = {-0.25, -0.75}
 		e.shooter = false
 	--sniper cannon
 	elseif tower_id == 3 then
 		e.name = "rail gun"
 		e.sprites = {17, 18, 19, 20, 21}
 		e.tm = 40
-		e.dmg = 20
+		e.dmg = {20, 22}
 		e.rng = 12
 	end
 	e.sprite_current = e.sprites[1]
@@ -252,7 +254,7 @@ function sys_ai_towers()
 				current_dist = distance_get(t.x, t.y, e.x, e.y)
 				if current_dist <= t.rng then
 					if t.tower_id == 2 then
-						e.spd_modifier = t.dmg
+						e.spd_modifier = t.dmg[t.lvl]
 					end
 				end
 			end
@@ -296,8 +298,7 @@ function sys_ai_towers()
 					elseif t.sprite_current == t.sprites[5] then
 						by = -3
 					end
-					--ent_bullet_create(t.x + 4, t.y + 4, t.target_x, t.target_y, t.rng, t.tower_id)
-					ent_explosion_create(t.target_x + 4, t.target_y + 4, t.dmg, t.tower_id)
+					ent_explosion_create(t.target_x + 4, t.target_y + 4, t.dmg[t.lvl], t.tower_id)
 					ent_explosion_create(t.x + 4 + bx, t.y + 4 + by, 0, 0)
 				end
 			else
