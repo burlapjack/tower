@@ -10,10 +10,19 @@ game_cursor = {
 	mode = 0,
 	closest_unit = 0
 }
+game_unit_selected = 0
+-->8
+--hud components
+game_hud_basic = {
+	bg = {0, 120, 128, 128},
+	bg_clr = 0,
+	lvl = {1, 121},
+	money = {16, 121}
+}
 
 game_menu_build = {
 	bg = {},
-	bg_clr = {},
+	bg_clr = 0,
 	btn_tower_1 = {32, 1},
 	btn_tower_2 = {40, 1},
 	btn_tower_3 = {48, 1},
@@ -36,8 +45,6 @@ game_menu_unit = {
 	btn_tm = 8,
 	btn_tmr = 0
 }
-
-game_unit_selected = 0
 
 function game_menu_unit_reset()
 	local gm = game_menu_unit
@@ -533,6 +540,12 @@ function sys_draw_enemies()
 end
 
 function sys_draw_hud()
+	--basic hud
+	local ghb = game_hud_basic
+	rectfill(ghb.bg[1], ghb.bg[2], ghb.bg[3], ghb.bg[4], ghb.bg_clr)
+	print(game_level, ghb.lvl[1], ghb.lvl[2], 7)
+	print(game_money, ghb.money[1], ghb.money[2], 7)
+
 	--unit select menu options
 	local gm = game_menu_unit
 	local n = 0
@@ -698,7 +711,7 @@ function _init()
 
 	sys_initialize_road()
 	ent_tower_create(24, 32, 1)
-	ent_tower_create(24, 120, 3)
+	ent_tower_create(24, 96, 3)
 	ent_tower_create(24, 40, 2)
 --	ent_tower_create(32, 96, 1)
 	ent_tower_create(64, 24, 1)
@@ -734,9 +747,6 @@ function _draw()
 	sys_draw_explosions()
 	sys_draw_hud()
 	sys_draw_cursor()
-	if #ent_enemy > 0 then
-		print(ent_enemy[1].hp, 0, 120, 7)
-	end
 end
 __gfx__
 00000000fffffffffffffffffffffffffffff00ffff00fffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000
