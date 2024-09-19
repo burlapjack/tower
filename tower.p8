@@ -12,9 +12,13 @@ game_cursor = {
 }
 
 game_menu_unit = {
+	x = 0,
+	y = 0,
+	x2 = 128,
+	y2 = 7,
 	btn_upgrade = {96, 0},
-	btn_delete = {104, 0},
-	btn_back = {112, 0},
+	btn_delete = {106, 0},
+	btn_back = {116, 0},
 	btn_pressed = 0,
 	btn_tm = 8,
 	btn_tmr = 0
@@ -355,28 +359,14 @@ end
 
 function sys_animate_hud()
 	local gm = game_menu_unit
-	if gm.btn_pressed  == 1 then
-		if gm.btn_tmr == gm.btn_tm then
-		elseif gm.btn_tmr == 0 then
-			gm.btn_pressed = 0
+
+	if gm.btn_tmr == 0 then
+		if gm.btn_pressed == 1 or gm.btn_pressed == 3 then
 			sfx(2)
-		end
-	end
-	if gm.btn_pressed == 2 then
-		if gm.btn_tmr == gm.btn_tm then
-			gm.btn_delete[2] += 1
-		elseif gm.btn_tmr == 0 then
-			gm.btn_pressed = 0
+		elseif gm.btn_pressed == 2 then
 			sfx(3)
 		end
-	end
-	if gm.btn_pressed == 3 then
-		if gm.btn_tmr == gm.btn_tm then
-			gm.btn_back[2] += 1
-		elseif gm.btn_tmr == 0 then
-			gm.btn_pressed = 0
-			sfx(2)
-		end
+		gm.btn_pressed = 0
 	end
 	if gm.btn_tmr > 0 then
 		gm.btn_tmr -= 1
@@ -517,8 +507,8 @@ function sys_draw_hud()
 	--unit select menu options
 	local gm = game_menu_unit
 	local n = 0
-	rectfill(0, 0, 128, 7, 0)
 	if game_unit_selected != 0 then
+		rectfill(gm.x, gm.y, gm.x2, gm.y2, 0)
 		print(ent_tower[game_unit_selected].name, 0, 1, 7)
 		print(ent_tower[game_unit_selected].lvl, 40, 1, 7)
 		--	print("🅾️options ❎exit", 56, 0, 7)
@@ -598,7 +588,7 @@ function sys_get_cursor()
 		end
 	elseif gc.closest_unit == 0 then
 		gc.mode = 0
-		if stat(34) == 1 then
+		if stat(34) == 1 and not cursor_is_in_hud() then
 			--clicking outside of the selected unit deselects it
 			game_unit_selected = 0
 			--game_menu_unit_reset()
@@ -610,13 +600,13 @@ function sys_get_hud()
 	local gm = game_menu_unit
 	if game_unit_selected != 0 then
 		if stat(34) == 1 and gm.btn_pressed == 0 then
-			if cursor_is_hovering(gm.btn_upgrade, 8, 8) and gm.btn_upgrade[3] == 0 then
+			if cursor_is_hovering(gm.btn_upgrade, 8, 8) then
 				gm.btn_pressed = 1
 				gm.btn_tmr = gm.btn_tm
-			elseif cursor_is_hovering(gm.btn_delete, 8, 8) and gm.btn_delete[3] == 0 then
+			elseif cursor_is_hovering(gm.btn_delete, 8, 8) then
 				gm.btn_pressed = 2
 				gm.btn_tmr = gm.btn_tm
-			elseif cursor_is_hovering(gm.btn_back, 8, 8) and gm.btn_back[3] == 0 then
+			elseif cursor_is_hovering(gm.btn_back, 8, 8) then
 				gm.btn_pressed = 3
 				gm.btn_tmr = gm.btn_tm
 			end
@@ -629,6 +619,16 @@ end
 function cursor_is_hovering(button, bw, bh)
 	if (game_cursor.x + 4) > button[1] and (game_cursor.x + 4) < button[1] + bw
 		and (game_cursor.y + 4) > button[2] and (game_cursor.y + 4) < button[2] + bh then
+		return true
+	else
+		return false
+	end
+end
+
+function cursor_is_in_hud()
+	local gm =  game_menu_unit
+	if (game_cursor.x + 4) > gm.x and (game_cursor.x + 4) < gm.x2
+		and (game_cursor.y + 4) > gm.y and (game_cursor.y + 4) < gm.y2 then
 		return true
 	else
 		return false
@@ -683,6 +683,8 @@ function _draw()
 	sys_draw_explosions()
 	sys_draw_hud()
 	sys_draw_cursor()
+--	print(game_menu_unit.btn_pressed, 0, 120, 7)
+	print(cursor_is_hovering(game_menu_unit.btn_upgrade, 8, 8), 0, 120, 7)
 end
 __gfx__
 00000000fffffffffffffffffffffffffffff00ffff00fffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000
