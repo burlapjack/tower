@@ -7,14 +7,15 @@ game_money = 0
 game_cursor = {
 	x = 0,
 	y = 0,
-	mode = 0
+	mode = 0,
+	closest_unit = 0
 }
 
 game_menu_unit = {
-	clicked = 0,
-	btn_upgrade = {96, 0, 0},
-	btn_delete = {104, 0, 0},
-	btn_back = {112, 0, 0},
+	btn_upgrade = {96, 0},
+	btn_delete = {104, 0},
+	btn_back = {112, 0},
+	btn_pressed = 0,
 	btn_tm = 8,
 	btn_tmr = 0
 }
@@ -23,7 +24,6 @@ game_unit_selected = 0
 
 function game_menu_unit_reset()
 	local gm = game_menu_unit
-	gm.clicked = 0
 	gm.btn_upgrade[3] = 0
 	gm.btn_delete[3] = 0
 	gm.btn_back[3] = 0
@@ -223,7 +223,7 @@ function sys_ai_towers()
 		local target_dist = 128
 		local e
 
-		--selection toggle
+		--selection toggle (probably redundant)
 		if t.selected == true and game_unit_selected != i then
 			t.selected = false
 		end
@@ -355,30 +355,26 @@ end
 
 function sys_animate_hud()
 	local gm = game_menu_unit
-	if gm.btn_upgrade[3] == 1 then
+	if gm.btn_pressed  == 1 then
 		if gm.btn_tmr == gm.btn_tm then
-			gm.btn_upgrade[2] += 1
 		elseif gm.btn_tmr == 0 then
-			gm.btn_upgrade[2] -= 1
-			gm.btn_upgrade[3] = 0
+			gm.btn_pressed = 0
 			sfx(2)
 		end
 	end
-	if gm.btn_delete[3] == 1 then
+	if gm.btn_pressed == 2 then
 		if gm.btn_tmr == gm.btn_tm then
 			gm.btn_delete[2] += 1
 		elseif gm.btn_tmr == 0 then
-			gm.btn_delete[2] -= 1
-			gm.btn_delete[3] = 0
+			gm.btn_pressed = 0
 			sfx(3)
 		end
 	end
-	if gm.btn_back[3] == 1 then
+	if gm.btn_pressed == 3 then
 		if gm.btn_tmr == gm.btn_tm then
 			gm.btn_back[2] += 1
 		elseif gm.btn_tmr == 0 then
-			gm.btn_back[2] -= 1
-			gm.btn_back[3] = 0
+			gm.btn_pressed = 0
 			sfx(2)
 		end
 	end
@@ -386,7 +382,6 @@ function sys_animate_hud()
 		gm.btn_tmr -= 1
 	end
 end
-
 
 function sys_animate_towers()
 	local ang = 8
@@ -521,14 +516,18 @@ end
 function sys_draw_hud()
 	--unit select menu options
 	local gm = game_menu_unit
-	if gm.clicked == 1 then
-		rectfill(0, 0, 128, 7, 0)
+	local n = 0
+	rectfill(0, 0, 128, 7, 0)
+	if game_unit_selected != 0 then
 		print(ent_tower[game_unit_selected].name, 0, 1, 7)
 		print(ent_tower[game_unit_selected].lvl, 40, 1, 7)
 		--	print("🅾️options ❎exit", 56, 0, 7)
-		spr(37, gm.btn_upgrade[1], gm.btn_upgrade[2])
-		spr(38, gm.btn_delete[1], gm.btn_delete[2])
-		spr(39, gm.btn_back[1], gm.btn_back[2])
+		if gm.btn_pressed == 1 then n = 1 else n = 0 end
+		spr(37, gm.btn_upgrade[1], gm.btn_upgrade[2] + n)
+		if gm.btn_pressed == 2 then n = 1 else n = 0 end
+		spr(38, gm.btn_delete[1], gm.btn_delete[2] + n)
+		if gm.btn_pressed == 3 then n = 1 else n = 0 end
+		spr(39, gm.btn_back[1], gm.btn_back[2] + n)
 	end
 end
 
@@ -569,64 +568,57 @@ function sys_initialize_road()
 	end
 end
 
-function sys_get_input()
+function sys_get_cursor()
 	--mouse coords
 	game_cursor.x = stat(32)
 	game_cursor.y = stat(33)
 
-	-- gameplay
-	if game_level > 0 then
-		local cx = game_cursor.x
-		local cy = game_cursor.y
-		local closest_dist = 5
-		local closest_unit = 0
-		local this_dist = 0
-		local t
-		for i = 1, #ent_tower do
-			t = ent_tower[i]
-			--selecting nearby units
-			if abs(t.x - cx < 4) and abs(t.y - cy < 4) then
-				this_dist = distance_get(t.x, t.y, cx, cy)
-				if this_dist < closest_dist then
-					closest_dist = this_dist
-					closest_unit = i
-				end
+	local gc = game_cursor
+	local closest_dist = 5
+	local this_dist = 0
+	local t
+	gc.closest_unit = 0
+	for i = 1, #ent_tower do
+		t = ent_tower[i]
+		--find the nearest unit
+		if abs(t.x - gc.x < 4) and abs(t.y - gc.y < 4) then
+			this_dist = distance_get(t.x, t.y, gc.x, gc.y)
+			if this_dist < closest_dist then
+				closest_dist = this_dist
+				gc.closest_unit = i
 			end
 		end
-		-- units found near cursor
-		if closest_unit != 0 then
-			game_cursor.mode = 1
-			--selecting a unit
-			if stat(34) == 1 then
-				ent_tower[closest_unit].selected = true
-				game_unit_selected = closest_unit
-				--clicking from unit to unit resets unit menu
-				if game_menu_unit.clicked == 1 then
-					game_menu_unit_reset()
-				end
-				game_menu_unit.clicked = 1
-		elseif closest_unit == 0 then
-			end
-			game_cursor.mode = 0
+	end
+	-- units found near cursor
+	if gc.closest_unit != 0 then
+		gc.mode = 1
+		if stat(34) == 1 then
+			ent_tower[game_cursor.closest_unit].selected = true
+			game_unit_selected = game_cursor.closest_unit
 		end
-		if game_unit_selected != 0 then
-			local gm = game_menu_unit
-			if stat(34) == 1 and gm.btn_tmr == 0 then
-				if cursor_is_hovering(gm.btn_upgrade, 8, 8) and gm.btn_upgrade[3] == 0 then
-					gm.btn_upgrade[3] = 1
-					gm.btn_tmr = gm.btn_tm
-				elseif cursor_is_hovering(gm.btn_delete, 8, 8) and gm.btn_delete[3] == 0 then
-					gm.btn_delete[3] = 1
-					gm.btn_tmr = gm.btn_tm
-				elseif cursor_is_hovering(gm.btn_back, 8, 8) and gm.btn_back[3] == 0 then
-					gm.btn_back[3] = 1
-					gm.btn_tmr = gm.btn_tm
-				elseif closest_unit == 0 then
-					--clicking outside of the selected unit deselects it
-			--		ent_tower[game_unit_selected].selected = false
-			--		game_unit_selected = 0
-			--		game_menu_unit_reset()
-				end
+	elseif gc.closest_unit == 0 then
+		gc.mode = 0
+		if stat(34) == 1 then
+			--clicking outside of the selected unit deselects it
+			game_unit_selected = 0
+			--game_menu_unit_reset()
+		end
+	end
+end
+
+function sys_get_hud()
+	local gm = game_menu_unit
+	if game_unit_selected != 0 then
+		if stat(34) == 1 and gm.btn_pressed == 0 then
+			if cursor_is_hovering(gm.btn_upgrade, 8, 8) and gm.btn_upgrade[3] == 0 then
+				gm.btn_pressed = 1
+				gm.btn_tmr = gm.btn_tm
+			elseif cursor_is_hovering(gm.btn_delete, 8, 8) and gm.btn_delete[3] == 0 then
+				gm.btn_pressed = 2
+				gm.btn_tmr = gm.btn_tm
+			elseif cursor_is_hovering(gm.btn_back, 8, 8) and gm.btn_back[3] == 0 then
+				gm.btn_pressed = 3
+				gm.btn_tmr = gm.btn_tm
 			end
 		end
 	end
@@ -666,7 +658,8 @@ function _init()
 end
 
 function _update()
-	sys_get_input()
+	sys_get_cursor()
+	sys_get_hud()
 	sys_ai_towers()
 	sys_ai_enemies()
 	sys_ai_explosions()
@@ -690,7 +683,6 @@ function _draw()
 	sys_draw_explosions()
 	sys_draw_hud()
 	sys_draw_cursor()
-	print(game_menu_unit.btn_tmr, 0, 120, 7)
 end
 __gfx__
 00000000fffffffffffffffffffffffffffff00ffff00fffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000
