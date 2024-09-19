@@ -11,6 +11,18 @@ game_cursor = {
 	closest_unit = 0
 }
 
+game_menu_build = {
+	bg = {},
+	bg_clr = {},
+	btn_tower_1 = {32, 1},
+	btn_tower_2 = {40, 1},
+	btn_tower_3 = {48, 1},
+	btn_back = {117, 1}
+	btn_pressed = 0,
+	btn_tm = 8,
+	btn_tmr = 0,
+}
+
 game_menu_unit = {
 	bg = {0, 0, 128, 9},
 	bg_clr = 0,
@@ -161,7 +173,6 @@ function ent_tower_get_cost(index)
 	end
 	return c
 end
-
 
 function ent_road_create(x, y, road_id)
 	local e = {
