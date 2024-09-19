@@ -95,16 +95,25 @@ function ent_explosion_create(x, y, dmg, explosion_id)
 		x = x,
 		y = y,
 		dmg = dmg,
-		rad = 3,
+		rad = 4,
 		col = 7,
 		tm = 5,
 		tmr = 0,
+		sound = 0,
+		sound_played = 0,
 		explosion_id = explosion_id
 	}
 	--initializing code based on explosion_id
 	--muzzle flash
 	if e.explosion_id == 0 then
 		e.rad = 1
+	elseif e.explosion_id == 1 then
+		e.rad = 4
+		sound = 0
+	elseif e.explosion_id == 2 then
+	elseif e.explosion_id == 3 then
+		e.rad = 3
+		sound = 1
 	end
 	add(ent_explosion, e)
 end
@@ -196,10 +205,9 @@ function sys_ai_explosions()
 			en = ent_enemy[j]
 			if distance_get(ex.x, ex.y, en.x, en.y) <= ex.rad + 1 then
 				en.hp -= ex.dmg
-				if ex.explosion_id == 1 then
-					sfx(0)
-				elseif ex.explosion_id == 3 then
-					sfx(1)
+				if ex.sound_played == 0 then
+					sfx(ex.sound)
+					ex.sound_played = 1
 				end
 			end
 		end
@@ -501,8 +509,8 @@ function sys_draw_explosions()
 		if e.explosion_id == 0 then --muzzle flash
 			circfill(e.x - e.rad, e.y - e.rad, e.rad + 1, e.col)
 		else
-			circfill(e.x - e.rad, e.y - e.rad, e.rad + 1, 10)
-			circfill(e.x - e.rad, e.y - e.rad, e.rad, e.col)
+			circfill(e.x, e.y, e.rad, 10)
+			circfill(e.x, e.y, max(e.rad - 1, 0), e.col)
 		end
 	end
 end
@@ -520,7 +528,6 @@ function sys_draw_enemies()
 		elseif e.dir == 3 then
 			spr(e.sprites_down[e.frame], e.x, e.y, 1, 1, e.sprite_flip)
 		end
-
 	end
 end
 
@@ -726,6 +733,9 @@ function _draw()
 	sys_draw_explosions()
 	sys_draw_hud()
 	sys_draw_cursor()
+	if #ent_enemy > 0 then
+		print(ent_enemy[1].hp, 0, 120, 7)
+	end
 end
 __gfx__
 00000000fffffffffffffffffffffffffffff00ffff00fffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000
