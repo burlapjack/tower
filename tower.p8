@@ -17,10 +17,10 @@ game_menu_build = {
 	btn_tower_1 = {32, 1},
 	btn_tower_2 = {40, 1},
 	btn_tower_3 = {48, 1},
-	btn_back = {117, 1}
+	btn_back = {117, 1},
 	btn_pressed = 0,
 	btn_tm = 8,
-	btn_tmr = 0,
+	btn_tmr = 0
 }
 
 game_menu_unit = {
@@ -627,19 +627,30 @@ function sys_get_cursor()
 end
 
 function sys_get_hud()
-	local gm = game_menu_unit
-	if game_unit_selected != 0 then
-		if stat(34) == 1 and gm.btn_pressed == 0 then
-			if cursor_is_hovering(gm.btn_upgrade, 8, 8) then
-				gm.btn_pressed = 1
-				gm.btn_tmr = gm.btn_tm
-			elseif cursor_is_hovering(gm.btn_delete, 8, 8) then
-				gm.btn_pressed = 2
-				gm.btn_tmr = gm.btn_tm
-			elseif cursor_is_hovering(gm.btn_back, 8, 8) then
-				gm.btn_pressed = 3
+	local gmu = game_menu_unit
+	local gmb = game_menu_build
+
+		--unit menu
+	if stat(34) == 1 and gmu.btn_pressed == 0 then
+		if game_unit_selected != 0 then
+			if cursor_is_hovering(gmu.btn_upgrade, 8, 8) then
+				gmu.btn_pressed = 1
+				gmu.btn_tmr = gmu.btn_tm
+			elseif cursor_is_hovering(gmu.btn_delete, 8, 8) then
+				gmu.btn_pressed = 2
+				gmu.btn_tmr = gmu.btn_tm
+			elseif cursor_is_hovering(gmu.btn_back, 8, 8) then
+				gmu.btn_pressed = 3
 				game_unit_selected = 0
-				gm.btn_tmr = gm.btn_tm
+				gmu.btn_tmr = gmu.btn_tm
+			end
+		else
+			if cursor_is_hovering(gmb.btn_tower_1, 8, 8) then
+				gmb.btn_pressed = 1
+			elseif cursor_is_hovering(gmb.btn_tower_2, 8, 8) then
+				gmb.btn_pressed = 2
+			elseif cursor_is_hovering(gmb.btn_tower_3, 8, 8) then
+				gmb.btn_pressed = 3
 			end
 		end
 	end
@@ -678,10 +689,11 @@ function _init()
 	poke(0x5F2D, 1)
 
 	sys_initialize_road()
-	ent_tower_create(24, 32, 3)
+	ent_tower_create(24, 32, 1)
+	ent_tower_create(24, 120, 1)
 	ent_tower_create(24, 40, 2)
-	ent_tower_create(32, 96, 1)
-	ent_tower_create(88, 24, 3)
+--	ent_tower_create(32, 96, 1)
+	ent_tower_create(64, 24, 1)
 
 	ent_enemy_create(16, 0, 1)
 	ent_enemy_create(16, 24, 1)
