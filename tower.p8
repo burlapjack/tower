@@ -107,13 +107,14 @@ function ent_explosion_create(x, y, dmg, explosion_id)
 	--muzzle flash
 	if e.explosion_id == 0 then
 		e.rad = 1
+		e.sound_played = 1
 	elseif e.explosion_id == 1 then
 		e.rad = 4
-		sound = 0
+		e.sound = 0
 	elseif e.explosion_id == 2 then
 	elseif e.explosion_id == 3 then
 		e.rad = 3
-		sound = 1
+		e.sound = 1
 	end
 	add(ent_explosion, e)
 end
@@ -697,7 +698,7 @@ function _init()
 
 	sys_initialize_road()
 	ent_tower_create(24, 32, 1)
-	ent_tower_create(24, 120, 1)
+	ent_tower_create(24, 120, 3)
 	ent_tower_create(24, 40, 2)
 --	ent_tower_create(32, 96, 1)
 	ent_tower_create(64, 24, 1)
