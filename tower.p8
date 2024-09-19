@@ -12,13 +12,14 @@ game_cursor = {
 }
 
 game_menu_unit = {
-	x = 0,
-	y = 0,
-	x2 = 128,
-	y2 = 7,
-	btn_upgrade = {96, 0},
-	btn_delete = {106, 0},
-	btn_back = {116, 0},
+	bg = {0, 0, 128, 9},
+	bg_clr = 0,
+	name = {0, 4},
+	lvl = {36, 4},
+	info = {47, 4},
+	btn_upgrade = {97, 1},
+	btn_delete = {107, 1},
+	btn_back = {117, 1},
 	btn_pressed = 0,
 	btn_tm = 8,
 	btn_tmr = 0
@@ -92,9 +93,6 @@ function ent_explosion_create(x, y, dmg, explosion_id)
 	--muzzle flash
 	if e.explosion_id == 0 then
 		e.rad = 1
---	elseif e.explosion_id == 1 then
---	elseif e.explosion_id == 2 then
---	elseif e.explosion_id == 3 then
 	end
 	add(ent_explosion, e)
 end
@@ -126,29 +124,44 @@ function ent_tower_create(x, y, tower_id)
 	--initializing code based on tower_id
 	--basic gun turret
 	if tower_id == 1 then
-		e.name = "sentrygun"
+		e.name = "sentry"
 		e.sprites = {1, 2, 3, 4, 5}
 		e.dmg = {1, 2}
+		e.cost = {10, 20, 30, 40, 50}
 
 	--magnet tower
 	elseif tower_id == 2 then
-		e.name = "magnetron"
+		e.name = "magspire"
 		e.sprites = {6, 7, 8, 9, 8, 7}
 		e.frame = e.sprites[1]
 		e.tm = 2
 		e.dmg = {-0.25, -0.75}
 		e.shooter = false
+		e.cost = {10, 20, 30, 40, 50}
 	--sniper cannon
 	elseif tower_id == 3 then
-		e.name = "rail gun"
+		e.name = "railgun"
 		e.sprites = {17, 18, 19, 20, 21}
 		e.tm = 40
 		e.dmg = {20, 22}
 		e.rng = 12
+		e.cost = {10, 20, 30, 40, 50}
 	end
 	e.sprite_current = e.sprites[1]
 	add(ent_tower, e)
 end
+
+function ent_tower_get_cost(index)
+	local t = ent_tower[index]
+	local c
+	if t.lvl + 1 <= #t.cost then
+		c = t.cost[t.lvl + 1]
+	else
+		c = 0
+	end
+	return c
+end
+
 
 function ent_road_create(x, y, road_id)
 	local e = {
@@ -347,10 +360,6 @@ function sys_animate_enemies()
 						e.sprite_flip = false
 					end
 				end
-			--	if e.frame > #e.sprites_idle then
-			--		e.frame = 1
-			--	end
-			--	e.sprite_current = e.sprites_idle[e.frame]
 			elseif e.behavior == 1 then
 				-- aggressive behavior?
 			end
@@ -362,7 +371,7 @@ function sys_animate_hud()
 	local gm = game_menu_unit
 
 	if gm.btn_tmr == 0 then
-		if gm.btn_pressed == 1 or gm.btn_pressed == 3 then
+		if gm.btn_pressed == 1 then
 			sfx(2)
 		elseif gm.btn_pressed == 2 then
 			sfx(3)
@@ -437,7 +446,9 @@ function sys_delete_enemies()
 	if #ent_enemy > 0 then
 		for i = #ent_enemy, 1, -1 do
 			if ent_enemy[i].hp < 1 then
-				deli(ent_enemy, i) end end
+				deli(ent_enemy, i)
+			end
+		end
 	end
 end
 
@@ -465,8 +476,6 @@ function sys_delete_towers()
 end
 
 function sys_draw_cursor()
---	local cy = game_cursor.y
---	local cx = game_cursor.x
 	if game_cursor.mode == 0 then
 		spr(35, game_cursor.x, game_cursor.y)
 	else
@@ -509,9 +518,9 @@ function sys_draw_hud()
 	local gm = game_menu_unit
 	local n = 0
 	if game_unit_selected != 0 then
-		rectfill(gm.x, gm.y, gm.x2, gm.y2, 0)
-		print(ent_tower[game_unit_selected].name, 0, 1, 7)
-		print(ent_tower[game_unit_selected].lvl, 40, 1, 7)
+		rectfill(gm.bg[1], gm.bg[2], gm.bg[3], gm.bg[4], gm.bg_clr)
+		print(ent_tower[game_unit_selected].name, gm.name[1], gm.name[2], 7)
+		print(ent_tower[game_unit_selected].lvl, gm.lvl[1], gm.lvl[2], 7)
 		--	print("🅾️options ❎exit", 56, 0, 7)
 		if gm.btn_pressed == 1 then n = 1 else n = 0 end
 		spr(37, gm.btn_upgrade[1], gm.btn_upgrade[2] + n)
@@ -519,6 +528,14 @@ function sys_draw_hud()
 		spr(38, gm.btn_delete[1], gm.btn_delete[2] + n)
 		if gm.btn_pressed == 3 then n = 1 else n = 0 end
 		spr(39, gm.btn_back[1], gm.btn_back[2] + n)
+
+		if cursor_is_hovering(gm.btn_upgrade, 8, 8) then
+			print("upgrade:$"..ent_tower_get_cost(game_unit_selected), gm.info[1], gm.info[2], 7)
+		elseif cursor_is_hovering(gm.btn_delete, 8, 8) then
+			print("delete unit", gm.info[1], gm.info[2], 7)
+		elseif cursor_is_hovering(gm.btn_back, 8, 8) then
+			print("exit", gm.info[1], gm.info[2], 7)
+		end
 	end
 end
 
@@ -531,8 +548,9 @@ function sys_draw_road()
 end
 
 function sys_draw_towers()
+	local t
 	for i = 1, #ent_tower do
-		local t = ent_tower[i]
+		t = ent_tower[i]
 		spr(t.sprite_current, t.x, t.y, 1, 1, t.sprite_flip, false)
 		if t.selected == true then
 			rect(t.x - 1, t.y - 1, t.x + 8, t.y + 8, 7)
@@ -609,6 +627,7 @@ function sys_get_hud()
 				gm.btn_tmr = gm.btn_tm
 			elseif cursor_is_hovering(gm.btn_back, 8, 8) then
 				gm.btn_pressed = 3
+				game_unit_selected = 0
 				gm.btn_tmr = gm.btn_tm
 			end
 		end
@@ -628,8 +647,8 @@ end
 
 function cursor_is_in_hud()
 	local gm =  game_menu_unit
-	if (game_cursor.x + 4) > gm.x and (game_cursor.x + 4) < gm.x2
-		and (game_cursor.y + 4) > gm.y and (game_cursor.y + 4) < gm.y2 then
+	if (game_cursor.x + 4) > gm.bg[1] and (game_cursor.x + 4) < gm.bg[3]
+		and (game_cursor.y + 4) > gm.bg[2] and (game_cursor.y + 4) < gm.bg[4] then
 		return true
 	else
 		return false
@@ -684,8 +703,6 @@ function _draw()
 	sys_draw_explosions()
 	sys_draw_hud()
 	sys_draw_cursor()
---	print(game_menu_unit.btn_pressed, 0, 120, 7)
-	print(cursor_is_hovering(game_menu_unit.btn_upgrade, 8, 8), 0, 120, 7)
 end
 __gfx__
 00000000fffffffffffffffffffffffffffff00ffff00fffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000
@@ -704,14 +721,14 @@ f0eeee0f0000000ffff0000fff0000ffff000d50ff0dd0ff00000000000000000000000000000000
 f002200ffff00ffff0550fffff0dd0ffff000fffff0000ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
 f020020fff0990ffff0990ffff0550ffff0990ffff0990ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
 ff0ff0fff090090ff090090ff090090ff090090ff090090f00000000000000000000000000000000000000000000000000000000000000000000000000000000
-fff0ffffff000ffffffff0fffff77fff77ffff77fff3bffffefffefffff7ffff0000000000000000000000000000000000000000000000000000000000000000
-ff0d0fffff04000ff0fff0ffffffffff7ffffff7ff333bffffef88ffff77ffff0000000000000000000000000000000000000000000000000000000000000000
-ff0d50ffff04040ff0fff0fffff77ffffffffffff33ff3bffff8effff67766ff0000000000000000000000000000000000000000000000000000000000000000
-f0dd50ffff04040ff0fff0ff7f7ff7f7fffffffff3f3bf3fffff8effff67ff6f0000000000000000000000000000000000000000000000000000000000000000
-f0d5550fff022220f0fff0ff7f7ff7f7ffffffffff3ffbffff8ff8effff6ff7f0000000000000000000000000000000000000000000000000000000000000000
-0dd5d50ff0244440f0f000fffff77ffffffffffff3ffffbff8ffff8ffffff7ff0000000000000000000000000000000000000000000000000000000000000000
-0d5dd5500240404002002200ffffffff7ffffff7ffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000
-dddddd550444444004444440fff77fff77ffff77ffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000
+fff0ffffff000ffffffff0fffff77fff77ffff77ffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000
+ff0d0fffff04000ff0fff0ffffffffff7ffffff7ffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000
+ff0d50ffff04040ff0fff0fffff77ffffffffffffff3bffffefffefffff7ffff0000000000000000000000000000000000000000000000000000000000000000
+f0dd50ffff04040ff0fff0ff7f7ff7f7ffffffffff333bffffef88ffff77ffff0000000000000000000000000000000000000000000000000000000000000000
+f0d5550fff022220f0fff0ff7f7ff7f7fffffffff33ff3bffff8effff67766ff0000000000000000000000000000000000000000000000000000000000000000
+0dd5d50ff0244440f0f000fffff77ffffffffffff3f3bf3fffff8effff67ff6f0000000000000000000000000000000000000000000000000000000000000000
+0d5dd5500240404002002200ffffffff7ffffff7ff3ffbffff8ff8effff6ff7f0000000000000000000000000000000000000000000000000000000000000000
+dddddd550444444004444440fff77fff77ffff77f3ffffbff8ffff8ffffff7ff0000000000000000000000000000000000000000000000000000000000000000
 ffffffff11111111ffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000
 ff0000ff11111111ff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ff00000000000000000000000000000000000000000000000000000000
 f011110f11111111f0eeee0ff0eeee0ff0eeee0ff0eeee0ff0eeee0ff0eeee0ff0eeee0f00000000000000000000000000000000000000000000000000000000
