@@ -33,7 +33,7 @@ game_menu_build = {
 }
 
 game_menu_unit = {
-	bg = {0, 0, 128, 9},
+	bg = {0, 0, 128, 10},
 	bg_clr = 0,
 	name = {0, 4},
 	lvl = {36, 4},
@@ -394,22 +394,6 @@ function sys_animate_enemies()
 	end
 end
 
-function sys_animate_hud()
-	local gm = game_menu_unit
-
-	if gm.btn_tmr == 0 then
-		if gm.btn_pressed == 1 then
-			sfx(2)
-		elseif gm.btn_pressed == 2 then
-			sfx(3)
-		end
-		gm.btn_pressed = 0
-	end
-	if gm.btn_tmr > 0 then
-		gm.btn_tmr -= 1
-	end
-end
-
 function sys_animate_towers()
 	local ang = 8
 	for i = 1, #ent_tower do
@@ -657,23 +641,24 @@ function sys_get_hud()
 			if cursor_is_hovering(gmu.btn_upgrade, 8, 8) then
 				gmu.btn_pressed = 1
 				gmu.btn_tmr = gmu.btn_tm
+				sfx(2)
 			elseif cursor_is_hovering(gmu.btn_delete, 8, 8) then
 				gmu.btn_pressed = 2
 				gmu.btn_tmr = gmu.btn_tm
+				sfx(3)
+				ent_tower[game_unit_selected].hp = 0
 			elseif cursor_is_hovering(gmu.btn_back, 8, 8) then
 				gmu.btn_pressed = 3
 				game_unit_selected = 0
 				gmu.btn_tmr = gmu.btn_tm
 			end
-		else
-			if cursor_is_hovering(gmb.btn_tower_1, 8, 8) then
-				gmb.btn_pressed = 1
-			elseif cursor_is_hovering(gmb.btn_tower_2, 8, 8) then
-				gmb.btn_pressed = 2
-			elseif cursor_is_hovering(gmb.btn_tower_3, 8, 8) then
-				gmb.btn_pressed = 3
-			end
+			gmb.btn_pressed = 0
 		end
+	end
+	if gmu.btn_tmr > 0 then
+		gmu.btn_tmr -= 1
+	else
+		gmu.btn_pressed = 0
 	end
 end
 
@@ -729,7 +714,6 @@ function _update()
 	sys_ai_explosions()
 	sys_animate_towers()
 	sys_animate_enemies()
-	sys_animate_hud()
 	sys_delete_enemies()
 	sys_delete_explosions()
 	sys_delete_towers()
