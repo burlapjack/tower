@@ -3,7 +3,7 @@ version 42
 __lua__
 --game variables
 game_level = 1
-game_money = 0
+game_money = 50
 game_cursor = {
 	x = 0,
 	y = 0,
@@ -120,7 +120,7 @@ function ent_explosion_create(x, y, dmg, explosion_id)
 		e.sound = 0
 	elseif e.explosion_id == 2 then
 	elseif e.explosion_id == 3 then
-		e.rad = 3
+		e.rad = 5
 		e.sound = 1
 	end
 	add(ent_explosion, e)
@@ -155,7 +155,7 @@ function ent_tower_create(x, y, tower_id)
 	if tower_id == 1 then
 		e.name = "sentry"
 		e.sprites = {1, 2, 3, 4, 5}
-		e.dmg = {1, 2}
+		e.dmg = {1, 2, 3, 4, 5}
 		e.cost = {10, 20, 30, 40, 50}
 
 	--magnet tower
@@ -164,7 +164,7 @@ function ent_tower_create(x, y, tower_id)
 		e.sprites = {6, 7, 8, 9, 8, 7}
 		e.frame = e.sprites[1]
 		e.tm = 2
-		e.dmg = {-0.25, -0.75}
+		e.dmg = {-0.25, -0.75, -0.75, -0.75,-0.75}
 		e.shooter = false
 		e.cost = {10, 20, 30, 40, 50}
 	--sniper cannon
@@ -172,7 +172,7 @@ function ent_tower_create(x, y, tower_id)
 		e.name = "railgun"
 		e.sprites = {17, 18, 19, 20, 21}
 		e.tm = 40
-		e.dmg = {20, 22}
+		e.dmg = {20, 22, 23, 24, 25}
 		e.rng = 12
 		e.cost = {10, 20, 30, 40, 50}
 	end
@@ -634,6 +634,7 @@ end
 function sys_get_hud()
 	local gmu = game_menu_unit
 	local gmb = game_menu_build
+	local t = ent_tower[game_unit_selected]
 
 		--unit menu
 	if stat(34) == 1 and gmu.btn_pressed == 0 then
@@ -641,7 +642,15 @@ function sys_get_hud()
 			if cursor_is_hovering(gmu.btn_upgrade, 8, 8) then
 				gmu.btn_pressed = 1
 				gmu.btn_tmr = gmu.btn_tm
-				sfx(2)
+				if t.lvl < t.lvl_max then
+					if game_money >= t.cost[t.lvl] then
+						game_money -= t.cost[t.lvl]
+						t.lvl += 1
+						sfx(2)
+					else
+						sfx(4)
+					end
+				end
 			elseif cursor_is_hovering(gmu.btn_delete, 8, 8) then
 				gmu.btn_pressed = 2
 				gmu.btn_tmr = gmu.btn_tm
@@ -770,3 +779,4 @@ __sfx__
 000100002b450244501c450184501345011450104500e4500b4500a450084500645004450014500045000450004000140001400014000142001450054500445002400044000c4000340001400004000040000400
 000600001b03027030237001d1001f000250001900017000150001400012000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000600002703022030250000f000020000f0000f00017000150001400012000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000335003300033000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
