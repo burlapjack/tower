@@ -21,11 +21,13 @@ game_hud_basic = {
 }
 
 game_menu_build = {
-	bg = {},
+	bg = {0, 0, 128, 10},
 	bg_clr = 0,
+	enabled = 0,
+	btn_build = {32, 1},
 	btn_tower_1 = {32, 1},
-	btn_tower_2 = {40, 1},
-	btn_tower_3 = {48, 1},
+	btn_tower_2 = {41, 1},
+	btn_tower_3 = {50, 1},
 	btn_back = {117, 1},
 	btn_pressed = 0,
 	btn_tm = 8,
@@ -528,31 +530,49 @@ function sys_draw_hud()
 	local ghb = game_hud_basic
 	rectfill(ghb.bg[1], ghb.bg[2], ghb.bg[3], ghb.bg[4], ghb.bg_clr)
 	print(game_level, ghb.lvl[1], ghb.lvl[2], 7)
-	print(game_money, ghb.money[1], ghb.money[2], 7)
+	print("$"..game_money, ghb.money[1], ghb.money[2], 7)
 
 	--unit select menu options
-	local gm = game_menu_unit
+	local gmu = game_menu_unit
+	local gmb = game_menu_build
 	local n = 0
 	if game_unit_selected != 0 then
-		rectfill(gm.bg[1], gm.bg[2], gm.bg[3], gm.bg[4], gm.bg_clr)
-		print(ent_tower[game_unit_selected].name, gm.name[1], gm.name[2], 7)
-		print(ent_tower[game_unit_selected].lvl, gm.lvl[1], gm.lvl[2], 7)
-		--	print("🅾️options ❎exit", 56, 0, 7)
-		if gm.btn_pressed == 1 then n = 1 else n = 0 end
-		spr(37, gm.btn_upgrade[1], gm.btn_upgrade[2] + n)
-		if gm.btn_pressed == 2 then n = 1 else n = 0 end
-		spr(38, gm.btn_delete[1], gm.btn_delete[2] + n)
-		if gm.btn_pressed == 3 then n = 1 else n = 0 end
-		spr(39, gm.btn_back[1], gm.btn_back[2] + n)
+		rectfill(gmu.bg[1], gmu.bg[2], gmu.bg[3], gmu.bg[4], gmu.bg_clr)
+		print(ent_tower[game_unit_selected].name, gmu.name[1], gmu.name[2], 7)
+		print(ent_tower[game_unit_selected].lvl, gmu.lvl[1], gmu.lvl[2], 7)
+		--unit menu options
+		if gmu.btn_pressed == 1 then n = 1 else n = 0 end
+		spr(37, gmu.btn_upgrade[1], gmu.btn_upgrade[2] + n)
+		if gmu.btn_pressed == 2 then n = 1 else n = 0 end
+		spr(38, gmu.btn_delete[1], gmu.btn_delete[2] + n)
+		if gmu.btn_pressed == 3 then n = 1 else n = 0 end
+		spr(39, gmu.btn_back[1], gmu.btn_back[2] + n)
 
-		if cursor_is_hovering(gm.btn_upgrade, 8, 8) then
-			print("upgrade:$"..ent_tower_get_cost(game_unit_selected), gm.info[1], gm.info[2], 7)
-		elseif cursor_is_hovering(gm.btn_delete, 8, 8) then
-			print("delete unit", gm.info[1], gm.info[2], 7)
-		elseif cursor_is_hovering(gm.btn_back, 8, 8) then
-			print("exit", gm.info[1], gm.info[2], 7)
+		--unit menu descriptions
+		if cursor_is_hovering(gmu.btn_upgrade, 8, 8) then
+			print("upgrade:$"..ent_tower_get_cost(game_unit_selected), gmu.info[1], gmu.info[2], 7)
+		elseif cursor_is_hovering(gmu.btn_delete, 8, 8) then
+			print("delete unit", gmu.info[1], gmu.info[2], 7)
+		elseif cursor_is_hovering(gmu.btn_back, 8, 8) then
+			print("exit", gmu.info[1], gmu.info[2], 7)
+		end
+	else -- no units selected
+		--build menu
+		if gmb.enabled == 1 then
+			rectfill(gmb.bg[1], gmb.bg[2], gmb.bg[3], gmb.bg[4], gmb.bg_clr)
+			sys_draw_hud_btn_bg(gmb.btn_tower_1, 1)
+			sys_draw_hud_btn_bg(gmb.btn_tower_2, 1)
+			sys_draw_hud_btn_bg(gmb.btn_tower_3, 1)
+			spr(1,gmb.btn_tower_1[1], gmb.btn_tower_1[2])
+			spr(6,gmb.btn_tower_2[1], gmb.btn_tower_2[2])
+			spr(17,gmb.btn_tower_3[1], gmb.btn_tower_3[2])
 		end
 	end
+
+end
+
+function sys_draw_hud_btn_bg(b, bg_col)
+	rectfill(b[1], b[2], b[1] + 7, b[2] + 7, bg_col)
 end
 
 function sys_draw_road()
@@ -626,6 +646,7 @@ function sys_get_cursor()
 		if stat(34) == 1 and not cursor_is_in_hud() then
 			--clicking outside of the selected unit deselects it
 			game_unit_selected = 0
+			game_menu_build.enabled = 0
 			--game_menu_unit_reset()
 		end
 	end
@@ -636,8 +657,12 @@ function sys_get_hud()
 	local gmb = game_menu_build
 	local t = ent_tower[game_unit_selected]
 
-		--unit menu
+	-- open build menu
+	if btnp(4) then gmb.enabled = 1 end
+	if game_unit_selected != 0 then gmb.enabled = 0 end
+
 	if stat(34) == 1 and gmu.btn_pressed == 0 then
+		--unit menu
 		if game_unit_selected != 0 then
 			if cursor_is_hovering(gmu.btn_upgrade, 8, 8) then
 				gmu.btn_pressed = 1
@@ -662,13 +687,13 @@ function sys_get_hud()
 				gmu.btn_tmr = gmu.btn_tm
 			end
 			gmb.btn_pressed = 0
+		elseif game_unit_selected == 0 and gmb.enabled == 1 then
+			--build menu code here
 		end
 	end
-	if gmu.btn_tmr > 0 then
-		gmu.btn_tmr -= 1
-	else
-		gmu.btn_pressed = 0
-	end
+
+	if gmu.btn_tmr > 0 then gmu.btn_tmr -= 1 else gmu.btn_pressed = 0 end
+
 end
 
 -->8
@@ -752,26 +777,26 @@ __gfx__
 00000000090000900900009009000090090000900900009009000090090000900900009009000090099009900990099000000000000000000000000000000000
 ffffffffffffffffffffffffffffffffffffff0ffff00fff00000000000000000000000000000000000000000000000000000000000000000000000000000000
 ff0000ffffffffffffff000ffff00fffffff00d0ff0dd0ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-f0eeee0f0000000ffff0000fff0000ffff000d50ff0dd0ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-0e8888e00ddd000fff0dd00fff0000fff000050fff0000ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-08288280f000000ff0dd50ffff0dd0fff00000ffff0000ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+f0eeee0f0000000ffff0110fff0110ffff001d50ff0dd0ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+0e8888e00ddd110fff0dd10fff0110fff011150fff0110ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+08288280f000000ff0dd50ffff0dd0fff01100ffff0110ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
 f002200ffff00ffff0550fffff0dd0ffff000fffff0000ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
 f020020fff0990ffff0990ffff0550ffff0990ffff0990ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
 ff0ff0fff090090ff090090ff090090ff090090ff090090f00000000000000000000000000000000000000000000000000000000000000000000000000000000
-fff0ffffff000ffffffff0fffff77fff77ffff77ffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000
-ff0d0fffff04000ff0fff0ffffffffff7ffffff7ffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000
-ff0d50ffff04040ff0fff0fffff77ffffffffffffff3bffffefffefffff7ffff0000000000000000000000000000000000000000000000000000000000000000
-f0dd50ffff04040ff0fff0ff7f7ff7f7ffffffffff333bffffef88ffff77ffff0000000000000000000000000000000000000000000000000000000000000000
-f0d5550fff022220f0fff0ff7f7ff7f7fffffffff33ff3bffff8effff67766ff0000000000000000000000000000000000000000000000000000000000000000
-0dd5d50ff0244440f0f000fffff77ffffffffffff3f3bf3fffff8effff67ff6f0000000000000000000000000000000000000000000000000000000000000000
-0d5dd5500240404002002200ffffffff7ffffff7ff3ffbffff8ff8effff6ff7f0000000000000000000000000000000000000000000000000000000000000000
-dddddd550444444004444440fff77fff77ffff77f3ffffbff8ffff8ffffff7ff0000000000000000000000000000000000000000000000000000000000000000
+fff0ffffff000ffffffff0fffff77fff77ffff77ffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000
+ff0d0fffff04000ff0fff0ffffffffff7ffffff7ffffffffffffffffffffffffffafffffffffffff000000000000000000000000000000000000000000000000
+ff0d50ffff04040ff0fff0fffff77ffffffffffffff3bffffefffefffff7fffff999999ff5ffddff000000000000000000000000000000000000000000000000
+f0dd50ffff04040ff0fff0ff7f7ff7f7ffffffffff333bffffef88ffff77ffffff9ffaffff5fdf6f000000000000000000000000000000000000000000000000
+f0d5550fff022220f0fff0ff7f7ff7f7fffffffff33ff3bffff8effff67766ffffaffafffffdd66f000000000000000000000000000000000000000000000000
+0dd5d50ff0244440f0f000fffff77ffffffffffff3f3bf3fffff8effff67ff6fffaf99afffdd6eff000000000000000000000000000000000000000000000000
+0d5dd5500240404002002200ffffffff7ffffff7ff3ffbffff8ff8effff6ff7fffaf99affdd68eef000000000000000000000000000000000000000000000000
+dddddd550444444004444440fff77fff77ffff77f3ffffbff8ffff8ffffff7fff99afffffd6ff8ef000000000000000000000000000000000000000000000000
 ffffffff11111111ffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000
 ff0000ff11111111ff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ff00000000000000000000000000000000000000000000000000000000
 f011110f11111111f0eeee0ff0eeee0ff0eeee0ff0eeee0ff0eeee0ff0eeee0ff0eeee0f00000000000000000000000000000000000000000000000000000000
 01000010111dd1110e8888e00e8888e00e8888e00e8888e00e8888e00e8888e00e8888e000000000000000000000000000000000000000000000000000000000
 10000001111dd1110828828008288280088288200882882008828820088888800888888000000000000000000000000000000000000000000000000000000000
-f000000f11111111f002200ff002200ff000220ff000220ff000220ff022220ff022220f00000000000000000000000000000000000000000000000000000000
+f000000f11111111f002200ff002200ff000220ff000220ff000220ff088880ff088880f00000000000000000000000000000000000000000000000000000000
 ff0000ff11111111f020080ff020020fff0800ffff8200ffff0200fff022220ff022220f00000000000000000000000000000000000000000000000000000000
 ffffffff11111111fffff8fffffffffffff8ffffff8ffffffffff8ffff0fffffffffffff00000000000000000000000000000000000000000000000000000000
 __sfx__
