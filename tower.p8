@@ -154,7 +154,7 @@ function ent_tower_create(x, y, tower_id)
 		frame = 1
 	}
 	--initializing code based on tower_id
-	--basic gun turret
+	--gun turret
 	if tower_id == 1 then
 		e.name = "sentry"
 		e.sprites = {1, 2, 3, 4, 5}
@@ -490,10 +490,15 @@ function sys_delete_towers()
 end
 
 function sys_draw_cursor()
-	if game_cursor.mode == 0 then
+	local m = game_cursor.mode
+	if m == 0 then
 		spr(35, game_cursor.x, game_cursor.y)
-	else
+	elseif m == 1 then
 		spr(36, game_cursor.x, game_cursor.y)
+	elseif m == 3 then
+		pal(7,8)
+		spr(36, game_cursor.x, game_cursor.y)
+		pal(7,7)
 	end
 end
 
@@ -663,7 +668,10 @@ function sys_get_hud()
 	if btnp(4) then gmb.enabled = 1 end
 	if game_unit_selected != 0 then gmb.enabled = 0 end
 	if gmb.enabled == 1 then
-		if cursor_is_hovering(gmb.btn_tower_1, 8, 8) then
+		if stat(34) == 1 then
+			if cursor_is_hovering(gmb.btn_tower_1, 8, 8) then
+				--building tower 1
+			end
 		end
 	end
 
