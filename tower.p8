@@ -671,6 +671,13 @@ function sys_get_hud()
 		if stat(34) == 1 then
 			if cursor_is_hovering(gmb.btn_tower_1, 8, 8) then
 				--building tower 1
+				gmb.btn_pressed = 1
+			elseif cursor_is_hovering(gmb.btn_tower_2, 8, 8) then
+				--building tower 2
+				gmb.btn_pressed = 2
+			elseif cursor_is_hovering(gmb.btn_tower_3, 8, 8) then
+				--building tower 3
+				gmb.btn_pressed = 3
 			end
 		end
 	end
