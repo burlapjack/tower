@@ -573,6 +573,13 @@ function sys_draw_hud()
 			spr(1,gmb.btn_tower_1[1], gmb.btn_tower_1[2])
 			spr(6,gmb.btn_tower_2[1], gmb.btn_tower_2[2])
 			spr(17,gmb.btn_tower_3[1], gmb.btn_tower_3[2])
+			if gmb.btn_pressed == 1 then
+				rect(gmb.btn_tower_1[1], gmb.btn_tower_1[2], gmb.btn_tower_1[1] + 7, gmb.btn_tower_1[2] + 7, 7)
+			elseif gmb.btn_pressed == 2 then
+				rect(gmb.btn_tower_2[1], gmb.btn_tower_2[2], gmb.btn_tower_2[1] + 7, gmb.btn_tower_2[2] + 7, 7)
+			elseif gmb.btn_pressed == 3 then
+				rect(gmb.btn_tower_3[1], gmb.btn_tower_3[2], gmb.btn_tower_3[1] + 7, gmb.btn_tower_3[2] + 7, 7)
+			end
 		end
 	end
 
@@ -666,7 +673,10 @@ function sys_get_hud()
 
 	-- open build menu
 	if btnp(4) then gmb.enabled = 1 end
-	if game_unit_selected != 0 then gmb.enabled = 0 end
+	if game_unit_selected != 0 then
+		gmb.enabled = 0
+		gmb.btn_pressed = 0
+	end
 	if gmb.enabled == 1 then
 		if stat(34) == 1 then
 			if cursor_is_hovering(gmb.btn_tower_1, 8, 8) then
